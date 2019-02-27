@@ -1,0 +1,2 @@
+# Things like S3 buckets and ECRs live outside of the root
+# stack to avoid accidental loss.
