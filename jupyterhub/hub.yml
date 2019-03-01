@@ -92,6 +92,10 @@ Resources:
         IpProtocol: tcp
         ToPort: 80
         FromPort: 80
+      - CidrIp: 10.101.2.32/32
+        IpProtocol: tcp
+        ToPort: 443
+        FromPort: 443
       SecurityGroupEgress:
       - CidrIp: 0.0.0.0/0
         IpProtocol: tcp
