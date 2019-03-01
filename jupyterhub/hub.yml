@@ -84,15 +84,15 @@ Resources:
       GroupDescription: Enable access to the bastion host
       VpcId: !Ref VPCId
       SecurityGroupIngress:
-      - CidrIp: 10.101.2.32/32
+      - CidrIp: 178.97.44.55/32
         IpProtocol: tcp
         ToPort: 22
         FromPort: 22
-      - CidrIp: 10.101.2.32/32
+      - CidrIp: 178.97.44.55/32
         IpProtocol: tcp
         ToPort: 80
         FromPort: 80
-      - CidrIp: 10.101.2.32/32
+      - CidrIp: 178.97.44.55/32
         IpProtocol: tcp
         ToPort: 443
         FromPort: 443
