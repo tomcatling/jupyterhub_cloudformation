@@ -1,0 +1,118 @@
+---
+  AWSTemplateFormatVersion: "2010-09-09"
+  Parameters:
+    pToc16InfrastructureStackName:  
+      Type: String
+      Default: toc-16-infrastructure
+    pBETInfrastructureStackName:  
+      Type: String
+      Default: bet-infrastructure
+  Description: "Definition of Users, Groups and Policies for the DataLake Account"
+
+  Resources: 
+    SelfServeUsers: 
+      Properties: 
+        GroupName: "SelfServeUsers"
+      Type: "AWS::IAM::Group"
+    AccountAdministrators: 
+      Properties: 
+        GroupName: "AccountAdministrators"
+        ManagedPolicyArns: 
+          - "arn:aws:iam::aws:policy/AdministratorAccess"
+      Type: "AWS::IAM::Group"
+
+    SelfServeUsersPolicy: 
+      Properties: 
+        Groups: 
+          - 
+            Ref: "SelfServeUsers"
+        PolicyDocument: 
+          Statement: 
+            - 
+              Action: 
+                - "iam:ListAccountAliases"
+                - "iam:ListUsers"
+                - "iam:GetAccountSummary"
+                - "iam:ListUserPolicies"
+                - "iam:ListGroupsForUser"
+                - "iam:ListGroupPolicies"
+                - "iam:ListAttachedGroupPolicies"
+                - "iam:ListAttachedUserPolicies"
+                - "iam:GetUser"
+                - "iam:ListPolicies"
+                - "iam:GenerateServiceLastAccessedDetails"
+                - "iam:GetServiceLastAccessedDetails"
+                - "iam:ListPoliciesGrantingServiceAccess"
+                - "iam:ListEntitiesForPolicy"
+              Effect: "Allow"
+              Resource: "*"
+              Sid: "AllowAllUsersToListAccounts"
+            - 
+              Action: 
+                - "iam:GetAccessKeyLastUsed"
+                - "iam:ChangePassword"
+                - "iam:CreateAccessKey"
+                - "iam:CreateLoginProfile"
+                - "iam:DeleteAccessKey"
+                - "iam:DeleteLoginProfile"
+                - "iam:GetAccountPasswordPolicy"
+                - "iam:GetLoginProfile"
+                - "iam:ListAccessKeys"
+                - "iam:UpdateAccessKey"
+                - "iam:UpdateLoginProfile"
+                - "iam:ListSigningCertificates"
+                - "iam:DeleteSigningCertificate"
+                - "iam:UpdateSigningCertificate"
+                - "iam:UploadSigningCertificate"
+                - "iam:ListSSHPublicKeys"
+                - "iam:GetSSHPublicKey"
+                - "iam:DeleteSSHPublicKey"
+                - "iam:UpdateSSHPublicKey"
+                - "iam:UploadSSHPublicKey"
+              Effect: "Allow"
+              Resource: 
+                - !Join ["",["arn:aws:iam::", !Ref "AWS::AccountId",":user/${aws:username}"]]
+              Sid: "AllowIndividualUserToSeeAndManageTheirOwnAccountInformation"
+            - 
+              Action: 
+                - "iam:ListVirtualMFADevices"
+                - "iam:ListMFADevices"
+              Effect: "Allow"
+              Resource: 
+                - !Join ["",["arn:aws:iam::", !Ref "AWS::AccountId", ":mfa/*"]]
+                - !Join ["",["arn:aws:iam::", !Ref "AWS::AccountId", ":user/${aws:username}"]]
+              Sid: "AllowIndividualUserToListTheirOwnMFA"
+            - 
+              Action: 
+                - "iam:CreateVirtualMFADevice"
+                - "iam:DeleteVirtualMFADevice"
+                - "iam:RequestSmsMfaRegistration"
+                - "iam:FinalizeSmsMfaRegistration"
+                - "iam:EnableMFADevice"
+                - "iam:ResyncMFADevice"
+              Effect: "Allow"
+              Resource: 
+                - !Join ["",["arn:aws:iam::", !Ref "AWS::AccountId", ":mfa/${aws:username}"]]
+                - !Join ["",["arn:aws:iam::", !Ref "AWS::AccountId", ":user/${aws:username}"]]
+              Sid: "AllowIndividualUserToManageTheirOwnMFA"
+            - 
+              Action: 
+                - "iam:DeactivateMFADevice"
+              Condition: 
+                Bool: 
+                  aws:MultiFactorAuthPresent: true
+              Effect: "Allow"
+              Resource: 
+                - !Join ["",["arn:aws:iam::", !Ref "AWS::AccountId", ":mfa/${aws:username}"]]
+                - !Join ["",["arn:aws:iam::", !Ref "AWS::AccountId", ":user/${aws:username}"]]
+              Sid: "AllowUsersToDeactivateTheirOwnVirtualMFADevice"
+          Version: "2012-10-17"
+      Type: "AWS::IAM::ManagedPolicy"
+
+    TomCatling: 
+      Properties: 
+        Groups: 
+          - Ref: "SelfServeUsers"
+          - Ref: "AccountAdministrators"
+        UserName: "tom.catling"
+      Type: "AWS::IAM::User"

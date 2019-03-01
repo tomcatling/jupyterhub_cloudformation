@@ -1,0 +1,110 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: Example instances accessible via a bastion in a private subnet.
+
+Parameters:
+
+  NetworkStackName:
+    Description: Active CloudFormation stack containing VPC resources
+    Type: String
+    MinLength: 1
+    MaxLength: 255
+    AllowedPattern: "^[a-zA-Z][-a-zA-Z0-9]*$"
+
+  VPCId:
+    Description: ID of the VPC
+    Type: String
+
+  KeyName:
+    Description: EC2 key pair name for service for SSH access.
+    Type: AWS::EC2::KeyPair::KeyName
+
+  BastionSecurityGroupId:
+    Description: Id of the bastion security group
+    Type: String
+
+Mappings:
+
+  # Amazon Linux AMI - https://aws.amazon.com/amazon-linux-ami/
+  # Note: This has not been tested with Amazon Linux 2
+  AMIMap:
+    ap-northeast-1:
+      AMI: ami-ceafcba8
+    ap-northeast-2:
+      AMI: ami-863090e8
+    ap-south-1:
+      AMI: ami-531a4c3c
+    ap-southeast-1:
+      AMI: ami-68097514
+    ap-southeast-2:
+      AMI: ami-942dd1f6
+    eu-west-1:
+      AMI: ami-d834aba1
+    eu-west-2:
+      AMI: ami-403e2524
+    eu-west-3:
+      AMI: ami-8ee056f3
+    eu-central-1:
+      AMI: ami-5652ce39
+    sa-east-1:
+      AMI: ami-84175ae8
+    us-east-1:
+      AMI: ami-97785bed
+    us-east-2:
+      AMI: ami-f63b1193
+    us-west-1:
+      AMI: ami-824c4ee2
+    us-west-2:
+      AMI: ami-f2d3638a
+    ca-central-1:
+      AMI: ami-a954d1cd
+
+Resources:
+
+  ApplicationSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable ssh ingress from the bastion host only.
+      VpcId: !Ref VPCId
+      SecurityGroupIngress:
+      - SourceSecurityGroupId: !Ref BastionSecurityGroupId
+        IpProtocol: tcp
+        ToPort: 22
+        FromPort: 22
+      SecurityGroupEgress:
+      - CidrIp: 0.0.0.0/0
+        IpProtocol: -1
+
+  Application:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      KeyName: !Ref KeyName
+      NetworkInterfaces:
+        - NetworkInterfaceId: !Ref ApplicationNetworkInterface
+          DeviceIndex: 0
+      ImageId: !FindInMap [ AMIMap, !Ref "AWS::Region", AMI ]
+      Tags:
+        - Key: Name
+          Value: application-example
+
+  ApplicationNetworkInterface:
+    Type: AWS::EC2::NetworkInterface
+    DependsOn: ApplicationSecurityGroup
+    Properties:
+      SubnetId:
+        Fn::ImportValue: !Sub "${NetworkStackName}-SubnetAPrivate"
+      GroupSet:
+        - !Ref ApplicationSecurityGroup
+      SourceDestCheck: true
+      Tags:
+        - Key: Name
+          Value: application-example
+
+Outputs:
+
+  Name:
+    Description: Application Stack Name
+    Value: !Ref AWS::StackName
+    Export:
+      Name: !Sub ${AWS::StackName}-Name

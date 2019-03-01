@@ -1,0 +1,12 @@
+AWSTemplateFormatVersion: 2010-09-09
+Resources:
+  CFNBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'jupyterhub-cloudformation-${AWS::AccountId}'
+    DeletionPolicy: Retain
+  DataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'data-${AWS::Region}-${AWS::AccountId}'
+    DeletionPolicy: Retain
