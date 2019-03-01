@@ -255,7 +255,7 @@ Resources:
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BastionHost --region ${AWS::Region}
           yum -y install docker
           service docker start
-          docker run -p 8000:8000 tomcatling/jupyterhub_aws
+          docker run -p 80:80 tomcatling/jupyterhub_aws
       IamInstanceProfile: !Ref BastionInstanceProfile
       Tags:
         - Key: Name
