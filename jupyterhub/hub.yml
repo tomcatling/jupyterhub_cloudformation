@@ -90,8 +90,8 @@ Resources:
         FromPort: 22
       - CidrIp: 89.36.64.36/32
         IpProtocol: tcp
-        ToPort: 8000
-        FromPort: 8000
+        ToPort: 80
+        FromPort: 80
       SecurityGroupEgress:
       - CidrIp: 0.0.0.0/0
         IpProtocol: tcp
