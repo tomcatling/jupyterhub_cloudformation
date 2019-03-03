@@ -7,32 +7,18 @@ Parameters:
   ParentStack:
     Description: Name of parent stack.
     Type: String
+    Default: jupyterhub
     MinLength: 1
     MaxLength: 255
     AllowedPattern: "^[a-zA-Z][-a-zA-Z0-9]*$"
-
-  NetworkStackName:
-    Description: Active CloudFormation stack containing VPC resources
-    Type: String
-    MinLength: 1
-    MaxLength: 255
-    AllowedPattern: "^[a-zA-Z][-a-zA-Z0-9]*$"
-
-  VPCId:
-    Description: ID of the VPC
-    Type: String
 
   FileSystem:
-    Description: ID of the filesystem to mount as /home/jovyan in Docker
-    Type: String 
+    Type: String
+    Default: Fn::ImportValue: !Sub "${ParentStack}-FileSystem"
 
   KeyName:
     Description: EC2 key pair name for service for SSH access.
     Type: AWS::EC2::KeyPair::KeyName
-
-  BastionSecurityGroupId:
-    Description: Id of the bastion security group
-    Type: String
 
 Mappings:
 
@@ -76,9 +62,9 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Enable ssh ingress from the bastion host only.
-      VpcId: !Ref VPCId
+      VpcId: Fn::ImportValue: !Sub "${ParentStack}-VPCId"
       SecurityGroupIngress:
-      - SourceSecurityGroupId: !Ref BastionSecurityGroupId
+      - SourceSecurityGroupId: Fn::ImportValue: !Sub "${ParentStack}-BastionSecurityGroupId"
         IpProtocol: tcp
         ToPort: 22
         FromPort: 22
@@ -92,7 +78,7 @@ Resources:
       InstanceType: t3.medium
       KeyName: !Ref KeyName
       NetworkInterfaces:
-        - NetworkInterfaceId: !Ref ApplicationNetworkInterface
+        - NetworkInterfaceId: Fn::ImportValue: !Sub "${ParentStack}-ApplicationNetworkInterface"
           DeviceIndex: 0
       ImageId: !FindInMap [ AMIMap, !Ref "AWS::Region", AMI ]
       Tags:
@@ -116,22 +102,15 @@ Resources:
     Type: AWS::EC2::NetworkInterface
     DependsOn: ApplicationSecurityGroup
     Properties:
-      SubnetId:
-        Fn::ImportValue: !Sub "${NetworkStackName}-SubnetAPrivate"
+      SubnetId: Fn::ImportValue: !Sub "${ParentStack}-SubnetAPrivate"
       GroupSet:
-        - !Ref ApplicationSecurityGroup
+        - Fn::ImportValue: !Sub "${ParentStack}-ApplicationSecurityGroup"
       SourceDestCheck: true
       Tags:
         - Key: Name
           Value: application-example
 
 Outputs:
-
-  Name:
-    Description: Application Stack Name
-    Value: !Ref AWS::StackName
-    Export:
-      Name: !Sub ${AWS::StackName}-Name
 
   InstanceIp:
     Description: Private IP of the instance

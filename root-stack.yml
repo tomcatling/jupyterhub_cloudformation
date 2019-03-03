@@ -39,6 +39,7 @@ Resources:
       TemplateURL: !Join [ "/", [!Ref pCloudformationBucket,"vpc", "nat.yml"] ]
       TimeoutInMinutes: "10"
   Users:
+    DependsOn: "VPC"
     Type: AWS::CloudFormation::Stack
     Properties:
       Parameters:
