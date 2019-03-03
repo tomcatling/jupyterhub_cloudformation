@@ -380,4 +380,4 @@ Outputs:
     Description: Id of the bastion security group
     Value: !Ref BastionSecurityGroup
     Export:
-      Name: !Sub "${ExportPrefix}-BastionSecurityGroup"
+      Name: !Sub "${ExportPrefix}-BastionSecurityGroupId"

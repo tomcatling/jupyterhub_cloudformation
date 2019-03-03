@@ -14,7 +14,7 @@ Parameters:
 
   FileSystem:
     Type: String
-    Default: Fn::ImportValue: !Sub "${ParentStack}-FileSystem"
+    Default: "jupyterhub-FileSystem"
 
   KeyName:
     Description: EC2 key pair name for service for SSH access.
@@ -62,9 +62,11 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Enable ssh ingress from the bastion host only.
-      VpcId: Fn::ImportValue: !Sub "${ParentStack}-VPCId"
+      VpcId: 
+        Fn::ImportValue: !Sub "${ParentStack}-VPCId"
       SecurityGroupIngress:
-      - SourceSecurityGroupId: Fn::ImportValue: !Sub "${ParentStack}-BastionSecurityGroupId"
+      - SourceSecurityGroupId: 
+          Fn::ImportValue: !Sub "${ParentStack}-BastionSecurityGroupId"
         IpProtocol: tcp
         ToPort: 22
         FromPort: 22
@@ -78,7 +80,8 @@ Resources:
       InstanceType: t3.medium
       KeyName: !Ref KeyName
       NetworkInterfaces:
-        - NetworkInterfaceId: Fn::ImportValue: !Sub "${ParentStack}-ApplicationNetworkInterface"
+        - NetworkInterfaceId: 
+            Fn::ImportValue: !Sub "${ParentStack}-ApplicationNetworkInterface"
           DeviceIndex: 0
       ImageId: !FindInMap [ AMIMap, !Ref "AWS::Region", AMI ]
       Tags:
@@ -86,25 +89,26 @@ Resources:
           Value: application-example
       UserData:
         Fn::Base64: !Sub 
-        - |
-          #!/bin/bash -xe
-          yum update -y
-          yum -y install docker nfs-utils
+          - |
+            #!/bin/bash -xe
+            yum update -y
+            yum -y install docker nfs-utils
 
-          mount -t nfs4 -o nfsvers=4.1 ${FileSystem}.efs.${AWS::Region}.amazonaws.com:/ /mnt
-          chown ec2-user:ec2-user /mnt/
+            mount -t nfs4 -o nfsvers=4.1 ${FileSystem}.efs.${AWS::Region}.amazonaws.com:/ /mnt
+            chown ec2-user:ec2-user /mnt/
 
-          service docker start
-          docker run -p 80:80 -v /mnt:/home/jovyan tomcatling/jupyterlab
-        - { FileSystem: !Ref FileSystem }
+            service docker start
+            docker run -p 80:80 -v /mnt:/home/jovyan tomcatling/jupyterlab
+          - { FileSystem: !Ref FileSystem }
 
   ApplicationNetworkInterface:
     Type: AWS::EC2::NetworkInterface
     DependsOn: ApplicationSecurityGroup
     Properties:
-      SubnetId: Fn::ImportValue: !Sub "${ParentStack}-SubnetAPrivate"
+      SubnetId: 
+        Fn::ImportValue: !Sub "${ParentStack}-SubnetAPrivate"
       GroupSet:
-        - Fn::ImportValue: !Sub "${ParentStack}-ApplicationSecurityGroup"
+        - !Ref ApplicationSecurityGroup
       SourceDestCheck: true
       Tags:
         - Key: Name
