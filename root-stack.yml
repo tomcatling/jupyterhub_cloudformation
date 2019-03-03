@@ -4,6 +4,10 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: Root Stack.
 Parameters:
+  pCloudformationBucketName:
+      Description: Base URL for cloudformation templates 
+      Type: String
+      Default: jupyterhub-cloudformation-631013143897
   pCloudformationBucket:
       Description: Base URL for cloudformation templates 
       Type: String
@@ -25,7 +29,7 @@ Resources:
         ExportPrefix: !Ref "AWS::StackName"
         KeyName: 'jupyterhub'
         InboundIP: '176.12.107.140/32'
-        CloudFormationBucket: !Ref pCloudformationBucket
+        CloudFormationBucket: !Ref pCloudformationBucketName
       TemplateURL: !Join [ "/", [!Ref pCloudformationBucket,"jupyterhub", "hub.yml"] ]
       TimeoutInMinutes: "10"
   NATA:
