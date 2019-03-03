@@ -88,7 +88,7 @@ Resources:
     Properties:
       GroupDescription: Enable access to the bastion host
       VpcId:
-        Fn::ImportValue: !Sub "${ParentStack}-VPCId"
+        Fn::ImportValue: !Sub "${ExportPrefix}-VPCId"
       SecurityGroupIngress:
       - CidrIp: !Ref InboundIP
         IpProtocol: tcp
@@ -312,7 +312,7 @@ Resources:
     DependsOn: BastionSecurityGroup
     Properties:
       SubnetId:
-        Fn::ImportValue: !Sub "${ParentStack}-ServerSubnetId"
+        Fn::ImportValue: !Sub "${ExportPrefix}-ServerSubnetId"
       GroupSet:
         - !Ref BastionSecurityGroup
       SourceDestCheck: true
