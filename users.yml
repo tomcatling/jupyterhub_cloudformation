@@ -7,7 +7,7 @@
     pBETInfrastructureStackName:  
       Type: String
       Default: bet-infrastructure
-  Description: "Definition of Users, Groups and Policies for the DataLake Account"
+  Description: "User groupd and permissions, and resources created on a per-user basis."
 
   Resources: 
     SelfServeUsers: 
@@ -109,23 +109,77 @@
           Version: "2012-10-17"
       Type: "AWS::IAM::ManagedPolicy"
 
+### Tom Catling
+############################################################
+
     TomCatling: 
       Properties: 
         Groups: 
           - Ref: "SelfServeUsers"
           - Ref: "AccountAdministrators"
+        Policies: 
+          - !Ref TomCatlingPolicy
         UserName: "tom.catling"
       Type: "AWS::IAM::User"
+
+    TomCatlingInstanceProfile:
+      Type: 'AWS::IAM::InstanceProfile'
+      Properties:
+        Path: /
+        Roles:
+          - !Ref TomCatlingRole
+
+    TomCatlingRole:
+      Type: 'AWS::IAM::Role'
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: 2012-10-17
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - ec2.amazonaws.com
+              Action:
+                - 'sts:AssumeRole'
+        Path: /
+
+    TomCatlingPolicy:
+      Type: 'AWS::IAM::Policy'
+      Properties:
+        PolicyName: ListS3BucketsPolicy
+        PolicyDocument:
+          Statement:
+            - Effect: Allow
+              Action:
+                - 's3:*'
+                - 'codecommit:*'
+                - 'ecr:*'
+                - 'ec2:*'
+              Resource: '*'
+            - Effect: Allow
+              Action:
+              - 'cloudformation:DeleteStack'
+              Resource: '*'
+        Roles:
+          - !Ref TomCatlingRole
     
     TomCatlingEFS:
       Type: AWS::EFS::FileSystem
       Properties:
         PerformanceMode: generalPurpose
-  
+
+############################################################
+
   Outputs:
   
     TomCatlingEFSOutput:
       Description: EFS ID for user tom.catling
       Value: !Ref TomCatlingEFS
       Export:
-        Name: !Sub ${AWS::StackName}-TomCatlingEFS
+        Name: !Sub ${AWS::StackName}-EFS-TomCatling
+
+    TomCatlingInstanceProfileOutput:
+      Description: InstanceProfile for user tom.catling
+      Value: !Ref TomCatlingInstanceProfile
+      Export:
+        Name: !Sub ${AWS::StackName}-InstanceProfile-TomCatling
