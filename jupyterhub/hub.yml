@@ -14,12 +14,8 @@ Parameters:
     Description: Prefix for stack exports
     Type: String
 
-  ServerSubnetId:
-    Description: Public subnet of the VPC
-    Type: String
-
-  VPCId:
-    Description: ID of the VPC
+  CloudFormationBucket:
+    Description: Bucket for cloudformation templates
     Type: String
 
   InboundIP:
@@ -91,7 +87,8 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Enable access to the bastion host
-      VpcId: !Ref VPCId
+      VpcId:
+        Fn::ImportValue: !Sub "${ParentStack}-VPCId"
       SecurityGroupIngress:
       - CidrIp: !Ref InboundIP
         IpProtocol: tcp
@@ -152,6 +149,11 @@ Resources:
             Action:
               - cloudformation:*
             Resource: '*'
+          - Effect: Allow
+            Action:
+              - s3:Get*
+              - s3:List*
+            Resource: !Sub '${CloudFormationBucket}/*'
           - Effect: Allow
             Action:
               - ec2:*
@@ -309,7 +311,8 @@ Resources:
     Type: AWS::EC2::NetworkInterface
     DependsOn: BastionSecurityGroup
     Properties:
-      SubnetId: !Ref ServerSubnetId
+      SubnetId:
+        Fn::ImportValue: !Sub "${ParentStack}-ServerSubnetId"
       GroupSet:
         - !Ref BastionSecurityGroup
       SourceDestCheck: true
