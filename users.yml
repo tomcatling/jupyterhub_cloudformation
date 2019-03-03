@@ -122,13 +122,6 @@
         UserName: "tom.catling"
       Type: "AWS::IAM::User"
 
-    TomCatlingInstanceProfile:
-      Type: 'AWS::IAM::InstanceProfile'
-      Properties:
-        Path: /
-        Roles:
-          - !Ref TomCatlingRole
-
     TomCatlingRole:
       Type: 'AWS::IAM::Role'
       Properties:
@@ -143,11 +136,19 @@
                 - 'sts:AssumeRole'
         Path: /
 
-    TomCatlingPolicy:
-      Type: 'AWS::IAM::Policy'
+    TomCatlingInstanceProfile:
+      Type: 'AWS::IAM::InstanceProfile'
       Properties:
-        PolicyName: TomCatlingPolicy
+        Path: /
+        Roles:
+          - !Ref TomCatlingRole
+
+    TomCatlingPolicy:
+      Type: AWS::IAM::ManagedPolicy
+      Properties: 
+        Description: String
         PolicyDocument:
+          Version: "2012-10-17"
           Statement:
             - Effect: Allow
               Action:
@@ -162,6 +163,9 @@
               Resource: '*'
         Roles:
           - !Ref TomCatlingRole
+        Users:
+          - !Ref TomCatling
+        ManagedPolicyName: TomCatlingPolicy
     
     TomCatlingEFS:
       Type: AWS::EFS::FileSystem
