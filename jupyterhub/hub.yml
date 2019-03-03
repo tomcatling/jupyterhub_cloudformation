@@ -151,8 +151,13 @@ Resources:
             Resource: '*'
           - Effect: Allow
             Action:
-              - s3:Get*
               - s3:List*
+            Resource:
+              - "arn:aws:s3:::${CloudFormationBucket}"
+              - "arn:aws:s3:::${CloudFormationBucket}/*"
+          - Effect: Allow
+            Action:
+              - s3:Get*
             Resource: 
               - !Sub "arn:aws:s3:::${CloudFormationBucket}/vpc/example_private_instance.yml"
           - Effect: Allow
