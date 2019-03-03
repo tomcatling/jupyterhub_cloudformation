@@ -23,6 +23,7 @@ Resources:
         NetworkStackName: !GetAtt VPC.Outputs.StackName
         KeyName: 'jupyterhub'
         VPCId: !GetAtt VPC.Outputs.VPC
+        InboundIP: '176.12.107.140/32'
       TemplateURL: !Join [ "/", [!Ref pCloudformationBucket,"jupyterhub", "hub.yml"] ]
       TimeoutInMinutes: "10"
   NATA:
