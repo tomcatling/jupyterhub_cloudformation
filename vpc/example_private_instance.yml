@@ -12,9 +12,16 @@ Parameters:
     MaxLength: 255
     AllowedPattern: "^[a-zA-Z][-a-zA-Z0-9]*$"
 
-  FileSystem:
+  InstanceTypeParameter:
     Type: String
-    Default: "jupyterhub-FileSystem"
+    Default: c5.xlarge
+    # Pattern should allow these instance families up to 9xlarge
+    AllowedPattern : "^(c5|m5|r5|c5d).[0-9]?.*$"
+
+  User:
+    Description: Name of parent stack.
+    Default: TomCatling
+    Type: String
 
   KeyName:
     Description: EC2 key pair name for service for SSH access.
@@ -77,11 +84,12 @@ Resources:
   Application:
     Type: AWS::EC2::Instance
     Properties:
-      InstanceType: t3.medium
+      InstanceType: !Ref 'InstanceTypeParameter'
+      IamInstanceProfile:
+        Fn::ImportValue: !Sub "${ParentStack}-InstanceProfile-${User}"
       KeyName: !Ref KeyName
       NetworkInterfaces:
-        - NetworkInterfaceId: 
-            Fn::ImportValue: !Sub "${ParentStack}-ApplicationNetworkInterface"
+        - NetworkInterfaceId: !Ref ApplicationNetworkInterface
           DeviceIndex: 0
       ImageId: !FindInMap [ AMIMap, !Ref "AWS::Region", AMI ]
       Tags:
@@ -98,8 +106,9 @@ Resources:
             chown ec2-user:ec2-user /mnt/
 
             service docker start
-            docker run -p 80:80 -v /mnt:/home/jovyan tomcatling/jupyterlab
-          - { FileSystem: !Ref FileSystem }
+            docker run -p 80:80 -v /mnt:/home/jovyan jupyter/datascience-notebook
+          - FileSystem: 
+              Fn::ImportValue: !Sub "${ParentStack}-EFS-${User}"
 
   ApplicationNetworkInterface:
     Type: AWS::EC2::NetworkInterface
