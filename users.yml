@@ -7,7 +7,7 @@
     pBETInfrastructureStackName:  
       Type: String
       Default: bet-infrastructure
-  Description: "User groupd and permissions, and resources created on a per-user basis."
+  Description: "User groups and permissions, resources created on a per-user basis."
 
   Resources: 
     SelfServeUsers: 

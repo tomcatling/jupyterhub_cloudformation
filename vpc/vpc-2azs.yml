@@ -253,11 +253,6 @@ Outputs:
     Value: !Ref ClassB
     Export:
       Name: !Sub '${AWS::StackName}-ClassB'
-  VPC:
-    Description: 'VPC.'
-    Value: !Ref VPC
-    Export:
-      Name: !Sub '${AWS::StackName}-VPC'
   SubnetsPublic:
     Description: 'Subnets public.'
     Value: !Join [',', [!Ref SubnetAPublic, !Ref SubnetBPublic]]
