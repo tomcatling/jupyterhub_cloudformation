@@ -312,7 +312,7 @@ Resources:
     DependsOn: BastionSecurityGroup
     Properties:
       SubnetId:
-        Fn::ImportValue: !Sub "${ExportPrefix}-ServerSubnetId"
+        Fn::ImportValue: !Sub "${ExportPrefix}-SubnetAPublic"
       GroupSet:
         - !Ref BastionSecurityGroup
       SourceDestCheck: true
