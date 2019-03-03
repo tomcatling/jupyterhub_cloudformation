@@ -328,3 +328,8 @@ Outputs:
     Value: !Ref RouteTableBPrivate
     Export:
       Name: !Sub '${AWS::StackName}-RouteTableBPrivate'
+  VPCId:
+    Description: 'VPCId.'
+    Value: !Ref VPC
+    Export:
+      Name: !Sub '${AWS::StackName}-VPCId'

@@ -146,7 +146,7 @@
     TomCatlingPolicy:
       Type: 'AWS::IAM::Policy'
       Properties:
-        PolicyName: ListS3BucketsPolicy
+        PolicyName: TomCatlingPolicy
         PolicyDocument:
           Statement:
             - Effect: Allow
