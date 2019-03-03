@@ -122,8 +122,9 @@ Resources:
       - Key: Name
         Value: !Sub "${AWS::StackName}-BastionSecurityGroup"
 
-  LogRole:
+  HubRole:
     Type: AWS::IAM::Role
+    DependsOn: BastionSecureLogGroup
     Properties:
       AssumeRolePolicyDocument:
         Version: 2012-10-17
@@ -143,14 +144,25 @@ Resources:
             - logs:DescribeLogStreams
             - logs:PutLogEvents
             Resource: !GetAtt BastionSecureLogGroup.Arn
-    DependsOn: BastionSecureLogGroup
+      - PolicyName: HubControl
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Effect: Allow
+            Action:
+              - cloudformation:*
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - ec2:*
+            Resource: '*'
 
   BastionInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
       Path: /
       Roles:
-        - !Ref LogRole
+        - !Ref HubRole
 
   BastionHost:
     Type: AWS::EC2::Instance
