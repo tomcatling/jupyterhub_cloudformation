@@ -15,6 +15,10 @@ Parameters:
     Description: ID of the VPC
     Type: String
 
+  Filesystem:
+    Description: ID of the filesystem to mount as /home/jovyan in Docker
+    Type: String 
+
   KeyName:
     Description: EC2 key pair name for service for SSH access.
     Type: AWS::EC2::KeyPair::KeyName
@@ -87,6 +91,21 @@ Resources:
       Tags:
         - Key: Name
           Value: application-example
+      UserData:
+        Fn::Base64: !Sub 
+        - |
+          #!/bin/bash -xe
+          yum update -y
+          /opt/aws/bin/cfn-init -v -s ${AWS::StackId} --resource BastionHost --region ${AWS::Region}
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BastionHost --region ${AWS::Region}
+          yum -y install docker nfs-utils
+
+          mount -t nfs4 -o nfsvers=4.1 ${FileSystem}.efs.${AWS::Region}.amazonaws.com:/ /mnt/
+          chown ec2-user:ec2-user /mnt/
+
+          service docker start
+          docker run -p 80:80 tomcatling/jupyterhub_aws
+        - { FileSystem: !Ref FileSystem }
 
   ApplicationNetworkInterface:
     Type: AWS::EC2::NetworkInterface

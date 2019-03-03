@@ -116,3 +116,16 @@
           - Ref: "AccountAdministrators"
         UserName: "tom.catling"
       Type: "AWS::IAM::User"
+    
+    TomCatlingEFS:
+    Type: AWS::EFS::FileSystem
+    Properties:
+      PerformanceMode: generalPurpose
+
+Outputs:
+
+  TomCatlingEFSOutput:
+    Description: EFS ID for user tom.catling
+    Value: !Ref TomCatlingEFS
+    Export:
+      Name: !Sub ${AWS::StackName}-TomCatlingEFS
