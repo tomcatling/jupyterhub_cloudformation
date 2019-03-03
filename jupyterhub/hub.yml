@@ -9,7 +9,7 @@ Description: Bastion
 
 
 Parameters:
-  
+
   ExportPrefix:
     Description: Prefix for stack exports
     Type: String
@@ -365,26 +365,19 @@ Resources:
         TreatMissingData: notBreaching
 
 Outputs:
-
-  Name:
-    Description: Bastion Stack Name
-    Value: !Ref AWS::StackName
-    Export:
-      Name: !Sub ${AWS::StackName}-Name
-
   BastionEip:
     Description: EIP for bastion host
     Value: !Ref BastionEip
     Export:
-      Name: !Sub "${AWS::StackName}-BastionEIP"
+      Name: !Sub "${ExportPrefix}-BastionEIP"
 
   BastionEipAllocationId:
     Description: EIP allocation id for bastion host
     Value: !GetAtt BastionEip.AllocationId
     Export:
-      Name: !Sub "${AWS::StackName}-BastionEIP-AllocationId"
+      Name: !Sub "${ExportPrefix}-BastionEIP-AllocationId"
   BastionSecurityGroupId:
     Description: Id of the bastion security group
     Value: !Ref BastionSecurityGroup
     Export:
-      Name: !Sub "${AWS::StackName}-BastionSecurityGroup"
+      Name: !Sub "${ExportPrefix}-BastionSecurityGroup"

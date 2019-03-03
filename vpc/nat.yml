@@ -98,11 +98,8 @@ Resources:
       - Name: NatGatewayId
         Value: !Ref NatGateway
 Outputs:
-  StackName:
-    Description: 'Stack name.'
-    Value: !Sub '${AWS::StackName}'
   IPAddress:
     Description: 'The public IP address of the NAT gateway.'
     Value: !Ref EIP
     Export:
-      Name: !Sub '${AWS::StackName}-IPAddress'
+      Name: !Sub '${ExportPrefix}-IPAddress'
