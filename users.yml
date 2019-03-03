@@ -117,8 +117,6 @@
         Groups: 
           - Ref: "SelfServeUsers"
           - Ref: "AccountAdministrators"
-        Policies: 
-          - !Ref TomCatlingPolicy
         UserName: "tom.catling"
       Type: "AWS::IAM::User"
 
