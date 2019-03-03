@@ -4,6 +4,13 @@ Description: Example instances accessible via a bastion in a private subnet.
 
 Parameters:
 
+  ParentStack:
+    Description: Name of parent stack.
+    Type: String
+    MinLength: 1
+    MaxLength: 255
+    AllowedPattern: "^[a-zA-Z][-a-zA-Z0-9]*$"
+
   NetworkStackName:
     Description: Active CloudFormation stack containing VPC resources
     Type: String
@@ -15,7 +22,7 @@ Parameters:
     Description: ID of the VPC
     Type: String
 
-  Filesystem:
+  FileSystem:
     Description: ID of the filesystem to mount as /home/jovyan in Docker
     Type: String 
 
@@ -82,7 +89,7 @@ Resources:
   Application:
     Type: AWS::EC2::Instance
     Properties:
-      InstanceType: t2.micro
+      InstanceType: t3.medium
       KeyName: !Ref KeyName
       NetworkInterfaces:
         - NetworkInterfaceId: !Ref ApplicationNetworkInterface
@@ -96,15 +103,13 @@ Resources:
         - |
           #!/bin/bash -xe
           yum update -y
-          /opt/aws/bin/cfn-init -v -s ${AWS::StackId} --resource BastionHost --region ${AWS::Region}
-          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BastionHost --region ${AWS::Region}
           yum -y install docker nfs-utils
 
-          mount -t nfs4 -o nfsvers=4.1 ${FileSystem}.efs.${AWS::Region}.amazonaws.com:/ /mnt/
+          mount -t nfs4 -o nfsvers=4.1 ${FileSystem}.efs.${AWS::Region}.amazonaws.com:/ /mnt
           chown ec2-user:ec2-user /mnt/
 
           service docker start
-          docker run -p 80:80 tomcatling/jupyterhub_aws
+          docker run -p 80:80 -v /mnt:/home/jovyan tomcatling/jupyterlab
         - { FileSystem: !Ref FileSystem }
 
   ApplicationNetworkInterface:
@@ -127,3 +132,7 @@ Outputs:
     Value: !Ref AWS::StackName
     Export:
       Name: !Sub ${AWS::StackName}-Name
+
+  InstanceIp:
+    Description: Private IP of the instance
+    Value: !GetAtt Application.PrivateIp

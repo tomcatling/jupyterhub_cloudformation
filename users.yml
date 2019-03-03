@@ -1,12 +1,15 @@
 ---
   AWSTemplateFormatVersion: "2010-09-09"
   Parameters:
-    pToc16InfrastructureStackName:  
+    ExportPrefix:
+      Description: Prefix for stack exports
       Type: String
-      Default: toc-16-infrastructure
-    pBETInfrastructureStackName:  
+    MountTargetSecurityGroupId:  
       Type: String
-      Default: bet-infrastructure
+    ServerSubnetId:
+      Description: Private subnet of the VPC
+      Type: String
+  
   Description: "User groups and permissions, resources created on a per-user basis."
 
   Resources: 
@@ -169,6 +172,13 @@
       Type: AWS::EFS::FileSystem
       Properties:
         PerformanceMode: generalPurpose
+    MountTarget:
+      Type: AWS::EFS::MountTarget
+      Properties:
+        FileSystemId: !Ref TomCatlingEFS
+        SubnetId: !Ref ServerSubnetId
+        SecurityGroups:
+          - !Ref MountTargetSecurityGroupId
 
 ############################################################
 

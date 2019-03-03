@@ -9,13 +9,14 @@ Description: Bastion
 
 
 Parameters:
-
-  NetworkStackName:
-    Description: Active CloudFormation stack containing VPC resources
+  
+  ExportPrefix:
+    Description: Prefix for stack exports
     Type: String
-    MinLength: 1
-    MaxLength: 255
-    AllowedPattern: "^[a-zA-Z][-a-zA-Z0-9]*$"
+
+  ServerSubnetId:
+    Description: Public subnet of the VPC
+    Type: String
 
   VPCId:
     Description: ID of the VPC
@@ -296,8 +297,7 @@ Resources:
     Type: AWS::EC2::NetworkInterface
     DependsOn: BastionSecurityGroup
     Properties:
-      SubnetId:
-        Fn::ImportValue: !Sub "${NetworkStackName}-SubnetAPublic"
+      SubnetId: !Ref ServerSubnetId
       GroupSet:
         - !Ref BastionSecurityGroup
       SourceDestCheck: true

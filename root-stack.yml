@@ -12,6 +12,8 @@ Resources:
   VPC:
     Type: AWS::CloudFormation::Stack
     Properties:
+      Parameters:
+        ExportPrefix: !Ref "AWS::StackName"
       TemplateURL: !Join [ "/", [!Ref pCloudformationBucket,"vpc", "vpc-2azs.yml"] ]
       TimeoutInMinutes: "10"
   Hub:
@@ -20,9 +22,10 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       Parameters:
-        NetworkStackName: !GetAtt VPC.Outputs.StackName
+        ExportPrefix: !Ref "AWS::StackName"
         KeyName: 'jupyterhub'
         VPCId: !GetAtt VPC.Outputs.VPC
+        ServerSubnetId: !GetAtt VPC.Outputs.SubnetAPublic
         InboundIP: '176.12.107.140/32'
       TemplateURL: !Join [ "/", [!Ref pCloudformationBucket,"jupyterhub", "hub.yml"] ]
       TimeoutInMinutes: "10"
@@ -31,12 +34,16 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       Parameters:
-        NetworkStackName: !GetAtt VPC.Outputs.StackName
+        ExportPrefix: !Ref "AWS::StackName"
         SubnetZone: 'A'
       TemplateURL: !Join [ "/", [!Ref pCloudformationBucket,"vpc", "nat.yml"] ]
       TimeoutInMinutes: "10"
   Users:
     Type: AWS::CloudFormation::Stack
     Properties:
+      Parameters:
+        ExportPrefix: !Ref "AWS::StackName"
+        MountTargetSecurityGroupId: !GetAtt VPC.Outputs.MountTargetSecurityGroupId
+        ServerSubnetId: !GetAtt VPC.Outputs.SubnetAPrivate
       TemplateURL: !Join [ "/", [!Ref pCloudformationBucket, "users.yml"] ]
       TimeoutInMinutes: "10"

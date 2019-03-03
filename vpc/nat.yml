@@ -27,8 +27,8 @@ Metadata:
       Parameters:
       - SubnetZone
 Parameters:
-  NetworkStackName:
-    Description: 'Stack name of parent VPC stack'
+  ExportPrefix:
+    Description: Prefix for stack exports
     Type: String
   ParentAlertStack:
     Description: 'Optional but recommended stack name of parent alert stack based on operations/alert.yaml template.'
@@ -55,12 +55,12 @@ Resources:
     Properties:
       AllocationId: !GetAtt 'EIP.AllocationId'
       SubnetId:
-        'Fn::ImportValue': !Sub '${NetworkStackName}-Subnet${SubnetZone}Public'
+        'Fn::ImportValue': !Sub '${ExportPrefix}-Subnet${SubnetZone}Public'
   Route:
     Type: AWS::EC2::Route
     Properties:
       RouteTableId:
-        'Fn::ImportValue': !Sub '${NetworkStackName}-RouteTable${SubnetZone}Private'
+        'Fn::ImportValue': !Sub '${ExportPrefix}-RouteTable${SubnetZone}Private'
       DestinationCidrBlock: '0.0.0.0/0'
       NatGatewayId: !Ref NatGateway
   AlarmNatGatewayErrorPortAllocation:

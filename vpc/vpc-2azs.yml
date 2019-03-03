@@ -22,6 +22,9 @@ Metadata:
       Parameters:
       - ClassB
 Parameters:
+  ExportPrefix:
+    Description: Prefix for stack exports
+    Type: String
   ClassB:
     Description: 'Class B of VPC (10.XXX.0.0/16)'
     Type: Number
@@ -229,102 +232,114 @@ Resources:
       RuleAction: allow
       Egress: true
       CidrBlock: '0.0.0.0/0'
+  MountTargetSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPC
+      GroupDescription: Security group for mount target
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '2049'
+        ToPort: '2049'
+        CidrIp: 0.0.0.0/0
 Outputs:
-  StackName:
-    Description: 'Stack name.'
-    Value: !Sub '${AWS::StackName}'
   AZs:
     Description: 'AZs'
     Value: 2
     Export:
-      Name: !Sub '${AWS::StackName}-AZs'
+      Name: !Sub '${ExportPrefix}-AZs'
   AZA:
     Description: 'AZ of A'
     Value: !Select [0, !GetAZs '']
     Export:
-      Name: !Sub '${AWS::StackName}-AZA'
+      Name: !Sub '${ExportPrefix}-AZA'
   AZB:
     Description: 'AZ of B'
     Value: !Select [1, !GetAZs '']
     Export:
-      Name: !Sub '${AWS::StackName}-AZB'
+      Name: !Sub '${ExportPrefix}-AZB'
   ClassB:
     Description: 'Class B.'
     Value: !Ref ClassB
     Export:
-      Name: !Sub '${AWS::StackName}-ClassB'
+      Name: !Sub '${ExportPrefix}-ClassB'
   SubnetsPublic:
     Description: 'Subnets public.'
     Value: !Join [',', [!Ref SubnetAPublic, !Ref SubnetBPublic]]
     Export:
-      Name: !Sub '${AWS::StackName}-SubnetsPublic'
+      Name: !Sub '${ExportPrefix}-SubnetsPublic'
   SubnetsPrivate:
     Description: 'Subnets private.'
     Value: !Join [',', [!Ref SubnetAPrivate, !Ref SubnetBPrivate]]
     Export:
-      Name: !Sub '${AWS::StackName}-SubnetsPrivate'
+      Name: !Sub '${ExportPrefix}-SubnetsPrivate'
   RouteTablePrivate: # deprecated in v4, will be removed in v5
     Description: 'Route table private (deprecated in v4, will be removed in v5).'
     Value: !Ref RouteTablePrivate
     Export:
-      Name: !Sub '${AWS::StackName}-RouteTablePrivate'
+      Name: !Sub '${ExportPrefix}-RouteTablePrivate'
   RouteTablePublic: # deprecated in v4, will be removed in v5
     Description: 'Route table public (deprecated in v4, will be removed in v5).'
     Value: !Ref RouteTablePublic
     Export:
-      Name: !Sub '${AWS::StackName}-RouteTablePublic'
+      Name: !Sub '${ExportPrefix}-RouteTablePublic'
   RouteTablesPrivate:
     Description: 'Route tables private.'
     Value: !Join [',', [!Ref RouteTablePrivate, !Ref RouteTableBPrivate]]
     Export:
-      Name: !Sub '${AWS::StackName}-RouteTablesPrivate'
+      Name: !Sub '${ExportPrefix}-RouteTablesPrivate'
   RouteTablesPublic:
     Description: 'Route tables public.'
     Value: !Join [',', [!Ref RouteTablePublic, !Ref RouteTableBPublic]]
     Export:
-      Name: !Sub '${AWS::StackName}-RouteTablesPublic'
+      Name: !Sub '${ExportPrefix}-RouteTablesPublic'
   SubnetAPublic:
     Description: 'Subnet A public.'
     Value: !Ref SubnetAPublic
     Export:
-      Name: !Sub '${AWS::StackName}-SubnetAPublic'
+      Name: !Sub '${ExportPrefix}-SubnetAPublic'
   RouteTableAPublic:
     Description: 'Route table A public.'
     Value: !Ref RouteTablePublic
     Export:
-      Name: !Sub '${AWS::StackName}-RouteTableAPublic'
+      Name: !Sub '${ExportPrefix}-RouteTableAPublic'
   SubnetAPrivate:
     Description: 'Subnet A private.'
     Value: !Ref SubnetAPrivate
     Export:
-      Name: !Sub '${AWS::StackName}-SubnetAPrivate'
+      Name: !Sub '${ExportPrefix}-SubnetAPrivate'
   RouteTableAPrivate:
     Description: 'Route table A private.'
     Value: !Ref RouteTablePrivate
     Export:
-      Name: !Sub '${AWS::StackName}-RouteTableAPrivate'
+      Name: !Sub '${ExportPrefix}-RouteTableAPrivate'
   SubnetBPublic:
     Description: 'Subnet B public.'
     Value: !Ref SubnetBPublic
     Export:
-      Name: !Sub '${AWS::StackName}-SubnetBPublic'
+      Name: !Sub '${ExportPrefix}-SubnetBPublic'
   RouteTableBPublic:
     Description: 'Route table B public.'
     Value: !Ref RouteTableBPublic
     Export:
-      Name: !Sub '${AWS::StackName}-RouteTableBPublic'
+      Name: !Sub '${ExportPrefix}-RouteTableBPublic'
   SubnetBPrivate:
     Description: 'Subnet B private.'
     Value: !Ref SubnetBPrivate
     Export:
-      Name: !Sub '${AWS::StackName}-SubnetBPrivate'
+      Name: !Sub '${ExportPrefix}-SubnetBPrivate'
   RouteTableBPrivate:
     Description: 'Route table B private.'
     Value: !Ref RouteTableBPrivate
     Export:
-      Name: !Sub '${AWS::StackName}-RouteTableBPrivate'
+      Name: !Sub '${ExportPrefix}-RouteTableBPrivate'
   VPCId:
     Description: 'VPCId.'
     Value: !Ref VPC
     Export:
-      Name: !Sub '${AWS::StackName}-VPCId'
+      Name: !Sub '${ExportPrefix}-VPCId'
+  MountTargetSecurityGroupId:
+    Description: 'Security group for EFS mount targets.'
+    Value: !Ref MountTargetSecurityGroup
+    Export:
+      Name: !Sub '${ExportPrefix}-MountTargetSecurityGroupId'
