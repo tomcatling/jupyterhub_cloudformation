@@ -1,4 +1,4 @@
-# jupyterhub_cloudformation
+# JupyterHub CloudFormation
 
 A set of CloudFormation templates to provision a JupterHub environment within a VPC where the Hub acts as a gateway.
 
