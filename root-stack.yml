@@ -28,7 +28,7 @@ Resources:
       Parameters:
         ExportPrefix: !Ref "AWS::StackName"
         KeyName: 'jupyterhub'
-        InboundIP: '176.12.107.140/32'
+        InboundIP: '89.36.64.36/32'
         CloudFormationBucket: !Ref pCloudformationBucketName
       TemplateURL: !Join [ "/", [!Ref pCloudformationBucket,"jupyterhub", "hub.yml"] ]
       TimeoutInMinutes: "10"
