@@ -4,3 +4,5 @@ A set of CloudFormation templates to provision a JupterHub environment within a 
 
 Each user has an associated Role which is also applied to the instance profile for their Server. An EFS instance is also created for each
 user as part of the Users stack, allowing work to persist across Server shutdowns.
+
+Servers are also provisioned via a Cloudformation template, with most variables pulled from imports after the parent stack is provided as a parameter.
