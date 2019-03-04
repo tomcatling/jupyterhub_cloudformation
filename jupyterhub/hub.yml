@@ -151,11 +151,8 @@ Resources:
             Resource: '*'
           - Effect: Allow
             Action:
-              - s3:List*
-              - s3:Get*
-            Resource:
-              - "arn:aws:s3:::${CloudFormationBucket}"
-              - "arn:aws:s3:::${CloudFormationBucket}/*"
+              - s3:*
+            Resource: '*'
           - Effect: Allow
             Action:
               - ec2:*
