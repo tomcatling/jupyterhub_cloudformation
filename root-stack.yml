@@ -50,5 +50,7 @@ Resources:
         KeyName: 'jupyterhub'
         InboundIP: '89.36.64.36/32'
         CloudFormationBucket: !Ref pCloudformationBucketName
+        ServerKeyName: !Ref "AWS::StackName"
+        ServerTemplateUrl: !Join [ "/", [!Ref pCloudformationBucket,"jupyterhub", "server.yml"] ]
       TemplateURL: !Join [ "/", [!Ref pCloudformationBucket,"jupyterhub", "hub.yml"] ]
       TimeoutInMinutes: "10"

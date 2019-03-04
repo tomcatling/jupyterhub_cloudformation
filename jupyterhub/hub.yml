@@ -32,7 +32,10 @@ Parameters:
 
   ServerKeyName:
     Description: EC2 key pair name for Hub host SSH access
-    Default: ServerKey
+    Type: String
+
+  ServerTemplateUrl:
+    Description: S3 address for server template
     Type: String
 
   LogRetentionInDays:
@@ -302,8 +305,13 @@ Resources:
             mkdir /server-key
             aws ec2 create-key-pair --key-name ${ServerKeyName} --query 'KeyMaterial' --output text > /server-key/${ServerKeyName}.pem
             service docker start
-            docker run -e ServerKeyName=${ServerKeyName} -p 80:80 -v /server-key:/home/admin/.ssh tomcatling/jupyterhub_aws
-          - { ServerKeyName: !Ref ServerKeyName }
+            docker run \
+              -e ServerKeyName=${ServerKeyName} \
+              -e ServerTemplateUrl=${ServerTemplateUrl} \
+              -p 80:80 \
+              -v /server-key:/home/admin/.ssh \
+              tomcatling/jupyterhub_aws
+          - { ServerKeyName: !Ref ServerKeyName, ServerTemplateUrl: !Ref ServerTemplateUrl }
       IamInstanceProfile: !Ref HubInstanceProfile
       Tags:
         - Key: Name
