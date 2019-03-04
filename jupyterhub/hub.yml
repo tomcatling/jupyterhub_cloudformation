@@ -303,7 +303,7 @@ Resources:
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource HubHost --region ${AWS::Region}
             yum -y install docker
             mkdir /server-key
-            aws ec2 create-key-pair --key-name ${ServerKeyName} --query 'KeyMaterial' --output text > /server-key/${ServerKeyName}.pem
+            aws ec2 create-key-pair --key-name ${ServerKeyName} --region ${AWS::Region} --query 'KeyMaterial' --output text > /server-key/${ServerKeyName}.pem
             service docker start
             docker run \
               -e ServerKeyName=${ServerKeyName} \
