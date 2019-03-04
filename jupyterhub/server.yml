@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 
-Description: Example instances accessible via a bastion in a private subnet.
+Description: Example instances accessible via a Hub in a private subnet.
 
 Parameters:
 
@@ -65,15 +65,15 @@ Mappings:
 
 Resources:
 
-  ApplicationSecurityGroup:
+  ServerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Enable ssh ingress from the bastion host only.
+      GroupDescription: Enable ssh ingress from the Hub host only.
       VpcId: 
         Fn::ImportValue: !Sub "${ParentStack}-VPCId"
       SecurityGroupIngress:
       - SourceSecurityGroupId: 
-          Fn::ImportValue: !Sub "${ParentStack}-BastionSecurityGroupId"
+          Fn::ImportValue: !Sub "${ParentStack}-HubSecurityGroupId"
         IpProtocol: tcp
         ToPort: 22
         FromPort: 22
@@ -81,7 +81,7 @@ Resources:
       - CidrIp: 0.0.0.0/0
         IpProtocol: -1
 
-  Application:
+  Server:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: !Ref 'InstanceTypeParameter'
@@ -89,12 +89,12 @@ Resources:
         Fn::ImportValue: !Sub "${ParentStack}-InstanceProfile-${User}"
       KeyName: !Ref KeyName
       NetworkInterfaces:
-        - NetworkInterfaceId: !Ref ApplicationNetworkInterface
+        - NetworkInterfaceId: !Ref ServerNetworkInterface
           DeviceIndex: 0
       ImageId: !FindInMap [ AMIMap, !Ref "AWS::Region", AMI ]
       Tags:
         - Key: Name
-          Value: application-example
+          Value: Server-example
       UserData:
         Fn::Base64: !Sub 
           - |
@@ -110,21 +110,21 @@ Resources:
           - FileSystem: 
               Fn::ImportValue: !Sub "${ParentStack}-EFS-${User}"
 
-  ApplicationNetworkInterface:
+  ServerNetworkInterface:
     Type: AWS::EC2::NetworkInterface
-    DependsOn: ApplicationSecurityGroup
+    DependsOn: ServerSecurityGroup
     Properties:
       SubnetId: 
         Fn::ImportValue: !Sub "${ParentStack}-SubnetAPrivate"
       GroupSet:
-        - !Ref ApplicationSecurityGroup
+        - !Ref ServerSecurityGroup
       SourceDestCheck: true
       Tags:
         - Key: Name
-          Value: application-example
+          Value: Server-example
 
 Outputs:
 
   InstanceIp:
     Description: Private IP of the instance
-    Value: !GetAtt Application.PrivateIp
+    Value: !GetAtt Server.PrivateIp
