@@ -308,10 +308,11 @@ Resources:
             docker run \
               -e ServerKeyName=${ServerKeyName} \
               -e ServerTemplateUrl=${ServerTemplateUrl} \
+              -e ParentStack=${ParentStack} \
               -p 80:80 \
               -v /server-key:/home/admin/.ssh \
               tomcatling/jupyterhub_aws
-          - { ServerKeyName: !Ref ServerKeyName, ServerTemplateUrl: !Ref ServerTemplateUrl }
+          - { ServerKeyName: !Ref ServerKeyName, ServerTemplateUrl: !Ref ServerTemplateUrl, ParentStack: !Ref ExportPrefix }
       IamInstanceProfile: !Ref HubInstanceProfile
       Tags:
         - Key: Name
