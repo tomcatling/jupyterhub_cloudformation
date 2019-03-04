@@ -4,11 +4,11 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: Root Stack.
 Parameters:
-  pCloudformationBucketName:
+  CloudformationBucketName:
       Description: Base URL for cloudformation templates 
       Type: String
       Default: jupyterhub-cloudformation-631013143897
-  pCloudformationBucket:
+  CloudformationBucket:
       Description: Base URL for cloudformation templates 
       Type: String
       Default: https://s3-eu-west-2.amazonaws.com/jupyterhub-cloudformation-631013143897
@@ -18,7 +18,7 @@ Resources:
     Properties:
       Parameters:
         ExportPrefix: !Ref "AWS::StackName"
-      TemplateURL: !Join [ "/", [!Ref pCloudformationBucket,"vpc", "vpc-2azs.yml"] ]
+      TemplateURL: !Join [ "/", [!Ref CloudformationBucket,"vpc", "vpc-2azs.yml"] ]
       TimeoutInMinutes: "10"
   NATA:
     DependsOn: "VPC"
@@ -27,7 +27,7 @@ Resources:
       Parameters:
         ExportPrefix: !Ref "AWS::StackName"
         SubnetZone: 'A'
-      TemplateURL: !Join [ "/", [!Ref pCloudformationBucket,"vpc", "nat.yml"] ]
+      TemplateURL: !Join [ "/", [!Ref CloudformationBucket,"vpc", "nat.yml"] ]
       TimeoutInMinutes: "10"
   Users:
     DependsOn: "VPC"
@@ -37,7 +37,7 @@ Resources:
         ExportPrefix: !Ref "AWS::StackName"
         MountTargetSecurityGroupId: !GetAtt VPC.Outputs.MountTargetSecurityGroupId
         ServerSubnetId: !GetAtt VPC.Outputs.SubnetAPrivate
-      TemplateURL: !Join [ "/", [!Ref pCloudformationBucket, "users.yml"] ]
+      TemplateURL: !Join [ "/", [!Ref CloudformationBucket, "users.yml"] ]
       TimeoutInMinutes: "10"
   Hub:
     DependsOn: 
@@ -49,8 +49,8 @@ Resources:
         ExportPrefix: !Ref "AWS::StackName"
         KeyName: 'jupyterhub'
         InboundIP: '89.36.64.36/32'
-        CloudFormationBucket: !Ref pCloudformationBucketName
-        ServerKeyName: !Ref "AWS::StackName"
-        ServerTemplateUrl: !Join [ "/", [!Ref pCloudformationBucket,"jupyterhub", "server.yml"] ]
-      TemplateURL: !Join [ "/", [!Ref pCloudformationBucket,"jupyterhub", "hub.yml"] ]
+        CloudFormationBucket: !Ref CloudformationBucketName
+        ServerKeyName: !Sub "${AWS::StackName}-ServerKey"
+        ServerTemplateUrl: !Join [ "/", [!Ref CloudformationBucket,"jupyterhub", "server.yml"] ]
+      TemplateURL: !Join [ "/", [!Ref CloudformationBucket,"jupyterhub", "hub.yml"] ]
       TimeoutInMinutes: "10"
