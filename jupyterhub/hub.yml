@@ -1,11 +1,11 @@
 AWSTemplateFormatVersion: '2010-09-09'
 
-# Bastion stack creation prerequisite:  first create an EC2 key pair and a VPC stack.
+# Hub stack creation prerequisite:  first create an EC2 key pair and a VPC stack.
 # For details about how to connect to a Linux instance in a private subnet via the
-# bastion, see the following AWS blog post:
+# Hub, see the following AWS blog post:
 # https://aws.amazon.com/blogs/security/securely-connect-to-linux-instances-running-in-a-private-amazon-vpc/
 
-Description: Bastion
+Description: Hub
 
 
 Parameters:
@@ -27,8 +27,13 @@ Parameters:
     ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
 
   KeyName:
-    Description: EC2 key pair name for bastion host SSH access
+    Description: EC2 key pair name for Hub host SSH access
     Type: AWS::EC2::KeyPair::KeyName
+
+  ServerKeyName:
+    Description: EC2 key pair name for Hub host SSH access
+    Default: ServerKey
+    Type: String
 
   LogRetentionInDays:
     Description: Number of days you would like your CloudWatch Logs to be retained
@@ -37,7 +42,7 @@ Parameters:
 
   # For more information on the google-authenticator PAM module, see: https://github.com/google/google-authenticator-libpam
   MFA:
-    Description: Set to true to install MFA using the google-authenticator PAM module on your bastion host
+    Description: Set to true to install MFA using the google-authenticator PAM module on your Hub host
     Type: String
     ConstraintDescription: Value must be true or false
     Default: false
@@ -83,10 +88,10 @@ Mappings:
 
 Resources:
 
-  BastionSecurityGroup:
+  HubSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Enable access to the bastion host
+      GroupDescription: Enable access to the Hub host
       VpcId:
         Fn::ImportValue: !Sub "${ExportPrefix}-VPCId"
       SecurityGroupIngress:
@@ -117,11 +122,11 @@ Resources:
         FromPort: 22
       Tags:
       - Key: Name
-        Value: !Sub "${AWS::StackName}-BastionSecurityGroup"
+        Value: !Sub "${AWS::StackName}-HubSecurityGroup"
 
   HubRole:
     Type: AWS::IAM::Role
-    DependsOn: BastionSecureLogGroup
+    DependsOn: HubSecureLogGroup
     Properties:
       AssumeRolePolicyDocument:
         Version: 2012-10-17
@@ -140,7 +145,7 @@ Resources:
             Action:
             - logs:DescribeLogStreams
             - logs:PutLogEvents
-            Resource: !GetAtt BastionSecureLogGroup.Arn
+            Resource: !GetAtt HubSecureLogGroup.Arn
       - PolicyName: HubControl
         PolicyDocument:
           Version: 2012-10-17
@@ -170,14 +175,14 @@ Resources:
             Resource:
               Fn::ImportValue: !Sub "${ExportPrefix}-ServerRoles"
 
-  BastionInstanceProfile:
+  HubInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
       Path: /
       Roles:
         - !Ref HubRole
 
-  BastionHost:
+  HubHost:
     Type: AWS::EC2::Instance
     Metadata:
       AWS::CloudFormation::Init:
@@ -204,8 +209,8 @@ Resources:
               content: !Sub |
                 [cfn-auto-reloader-hook]
                 triggers=post.update
-                path=Resources.BastionHost.Metadata.AWS::CloudFormation::Init
-                action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource BastionHost --region ${AWS::Region}
+                path=Resources.HubHost.Metadata.AWS::CloudFormation::Init
+                action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource HubHost --region ${AWS::Region}
 
             "/etc/awslogs/awslogs.conf":
               mode: "000444"
@@ -217,7 +222,7 @@ Resources:
                 state_file = /var/lib/awslogs/agent-state
                 [/var/log/secure]
                 file = /var/log/secure
-                log_group_name = ${BastionSecureLogGroup}
+                log_group_name = ${HubSecureLogGroup}
                 log_stream_name = log
                 datetime_format = %b %d %H:%M:%S
 
@@ -282,71 +287,76 @@ Resources:
       InstanceType: t3.medium
       KeyName: !Ref KeyName
       NetworkInterfaces:
-        - NetworkInterfaceId: !Ref BastionNetworkInterface
+        - NetworkInterfaceId: !Ref HubNetworkInterface
           DeviceIndex: 0
       ImageId: !FindInMap [ AMIMap, !Ref "AWS::Region", AMI ]
       UserData:
-        Fn::Base64: !Sub |
-          #!/bin/bash -xe
-          yum update -y
-          /opt/aws/bin/cfn-init -v -s ${AWS::StackId} --resource BastionHost --region ${AWS::Region}
-          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BastionHost --region ${AWS::Region}
-          yum -y install docker
-          service docker start
-          docker run -p 80:80 tomcatling/jupyterhub_aws
-      IamInstanceProfile: !Ref BastionInstanceProfile
+        Fn::Base64:
+          !Sub
+          - |
+            #!/bin/bash -xe
+            yum update -y
+            /opt/aws/bin/cfn-init -v -s ${AWS::StackId} --resource HubHost --region ${AWS::Region}
+            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource HubHost --region ${AWS::Region}
+            yum -y install docker
+            mkdir /server-key
+            aws ec2 create-key-pair --key-name ${ServerKeyName} --query 'KeyMaterial' --output text > /server-key/${ServerKeyName}.pem
+            service docker start
+            docker run -e ServerKeyName=${ServerKeyName} -p 80:80 -v /server-key:/home/admin/.ssh tomcatling/jupyterhub_aws
+          - { ServerKeyName: !Ref ServerKeyName }
+      IamInstanceProfile: !Ref HubInstanceProfile
       Tags:
         - Key: Name
-          Value: datalake-bastion
-    DependsOn: BastionEipAssociation
+          Value: jupyterhub
+    DependsOn: HubEipAssociation
     CreationPolicy:
       ResourceSignal:
         Count: 1
         Timeout: PT5M
 
-  BastionEip:
+  HubEip:
     Type: AWS::EC2::EIP
     Properties:
       Domain: vpc
 
-  BastionEipAssociation:
+  HubEipAssociation:
     Type: AWS::EC2::EIPAssociation
     Properties:
-      AllocationId: !GetAtt BastionEip.AllocationId
-      NetworkInterfaceId: !Ref BastionNetworkInterface
+      AllocationId: !GetAtt HubEip.AllocationId
+      NetworkInterfaceId: !Ref HubNetworkInterface
     DependsOn:
-      - BastionEip
-      - BastionNetworkInterface
+      - HubEip
+      - HubNetworkInterface
 
-  BastionNetworkInterface:
+  HubNetworkInterface:
     Type: AWS::EC2::NetworkInterface
-    DependsOn: BastionSecurityGroup
+    DependsOn: HubSecurityGroup
     Properties:
       SubnetId:
         Fn::ImportValue: !Sub "${ExportPrefix}-SubnetAPublic"
       GroupSet:
-        - !Ref BastionSecurityGroup
+        - !Ref HubSecurityGroup
       SourceDestCheck: true
       Tags:
         - Key: Name
-          Value: startup-kit-bastion
+          Value: startup-kit-Hub
 
-  BastionSecureLogGroup:
+  HubSecureLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
       RetentionInDays: !Ref LogRetentionInDays
 
-  BastionSecureLogGroupStream:
+  HubSecureLogGroupStream:
     Type: AWS::Logs::LogStream
     Properties:
-      LogGroupName: !Ref BastionSecureLogGroup
+      LogGroupName: !Ref HubSecureLogGroup
       LogStreamName: log
 
   # When a user tries to SSH with invalid username the activity is logged in the SSH log file
   SshInvalidUserMetricFilter:
       Type: AWS::Logs::MetricFilter
       Properties:
-        LogGroupName: !Ref BastionSecureLogGroup
+        LogGroupName: !Ref HubSecureLogGroup
         FilterPattern: "[Mon, day, timestamp, ip, id, status = Invalid, ...]"
         MetricTransformations:
         - MetricValue: 1
@@ -370,7 +380,7 @@ Resources:
   SshClosedConnectionMetricFilter:
       Type: AWS::Logs::MetricFilter
       Properties:
-        LogGroupName: !Ref BastionSecureLogGroup
+        LogGroupName: !Ref HubSecureLogGroup
         FilterPattern: "[Mon, day, timestamp, ip, id, msg1= Connection, msg2 = closed, ...]"
         MetricTransformations:
         - MetricValue: 1
@@ -391,19 +401,19 @@ Resources:
         TreatMissingData: notBreaching
 
 Outputs:
-  BastionEip:
-    Description: EIP for bastion host
-    Value: !Ref BastionEip
+  HubEip:
+    Description: EIP for Hub host
+    Value: !Ref HubEip
     Export:
-      Name: !Sub "${ExportPrefix}-BastionEIP"
+      Name: !Sub "${ExportPrefix}-HubEIP"
 
-  BastionEipAllocationId:
-    Description: EIP allocation id for bastion host
-    Value: !GetAtt BastionEip.AllocationId
+  HubEipAllocationId:
+    Description: EIP allocation id for Hub host
+    Value: !GetAtt HubEip.AllocationId
     Export:
-      Name: !Sub "${ExportPrefix}-BastionEIP-AllocationId"
-  BastionSecurityGroupId:
-    Description: Id of the bastion security group
-    Value: !Ref BastionSecurityGroup
+      Name: !Sub "${ExportPrefix}-HubEIP-AllocationId"
+  HubSecurityGroupId:
+    Description: Id of the Hub security group
+    Value: !Ref HubSecurityGroup
     Export:
-      Name: !Sub "${ExportPrefix}-BastionSecurityGroupId"
+      Name: !Sub "${ExportPrefix}-HubSecurityGroupId"

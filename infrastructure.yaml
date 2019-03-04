@@ -10,3 +10,7 @@ Resources:
     Properties:
       BucketName: !Sub 'data-${AWS::Region}-${AWS::AccountId}'
     DeletionPolicy: Retain
+  InstanceECR:
+    Type: AWS::ECR::Repository
+    Properties: 
+      RepositoryName: jupyterhub
