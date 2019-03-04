@@ -154,13 +154,7 @@
             - Effect: Allow
               Action:
                 - 's3:*'
-                - 'codecommit:*'
                 - 'ecr:*'
-                - 'ec2:*'
-              Resource: '*'
-            - Effect: Allow
-              Action:
-              - 'cloudformation:DeleteStack'
               Resource: '*'
         Roles:
           - !Ref TomCatlingRole
@@ -195,3 +189,9 @@
       Value: !Ref TomCatlingInstanceProfile
       Export:
         Name: !Sub ${ExportPrefix}-InstanceProfile-TomCatling
+
+    ServerRoles:
+      Description: List of possible server roles
+      Value: !Join [',', [!GetAtt TomCatlingRole.Arn]]
+      Export:
+        Name: !Sub ${ExportPrefix}-ServerRoles

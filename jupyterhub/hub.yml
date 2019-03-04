@@ -151,17 +151,24 @@ Resources:
             Resource: '*'
           - Effect: Allow
             Action:
-              - s3:*
-            Resource: '*'
+              - s3:Get*
+              - s3:List*
+            Resource:
+              - !Sub "arn:aws:s3:::${CloudFormationBucket}"
+              - !Sub "arn:aws:s3:::${CloudFormationBucket}/*"
           - Effect: Allow
             Action:
               - ec2:*
             Resource: '*'
           - Effect: Allow
             Action:
-              - iam:PassRole
               - iam:ListInstanceProfiles
             Resource: '*'
+          - Effect: Allow
+            Action:
+              - iam:PassRole
+            Resource:
+              Fn::ImportValue: !Sub "${ExportPrefix}-ServerRoles"
 
   BastionInstanceProfile:
     Type: AWS::IAM::InstanceProfile
