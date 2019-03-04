@@ -152,17 +152,18 @@ Resources:
           - Effect: Allow
             Action:
               - s3:List*
+              - s3:Get*
             Resource:
               - "arn:aws:s3:::${CloudFormationBucket}"
               - "arn:aws:s3:::${CloudFormationBucket}/*"
           - Effect: Allow
             Action:
-              - s3:Get*
-            Resource: 
-              - !Sub "arn:aws:s3:::${CloudFormationBucket}/vpc/example_private_instance.yml"
+              - ec2:*
+            Resource: '*'
           - Effect: Allow
             Action:
-              - ec2:*
+              - iam:PassRole
+              - iam:ListInstanceProfiles
             Resource: '*'
 
   BastionInstanceProfile:
