@@ -120,7 +120,7 @@
         Groups: 
           - Ref: "SelfServeUsers"
           - Ref: "AccountAdministrators"
-        UserName: "tom.catling"
+        UserName: "tomcatling"
       Type: "AWS::IAM::User"
 
     TomCatlingRole:
@@ -179,16 +179,16 @@
   Outputs:
   
     TomCatlingEFSOutput:
-      Description: EFS ID for user tom.catling
+      Description: EFS ID for user tomcatling
       Value: !Ref TomCatlingEFS
       Export:
-        Name: !Sub ${ExportPrefix}-EFS-TomCatling
+        Name: !Sub ${ExportPrefix}-EFS-tomcatling
 
     TomCatlingInstanceProfileOutput:
-      Description: InstanceProfile for user tom.catling
+      Description: InstanceProfile for user tomcatling
       Value: !Ref TomCatlingInstanceProfile
       Export:
-        Name: !Sub ${ExportPrefix}-InstanceProfile-TomCatling
+        Name: !Sub ${ExportPrefix}-InstanceProfile-tomcatling
 
     ServerRoles:
       Description: List of possible server roles

@@ -94,7 +94,7 @@ Resources:
       ImageId: !FindInMap [ AMIMap, !Ref "AWS::Region", AMI ]
       Tags:
         - Key: Name
-          Value: Server-example
+          Value: !Sub "server-${User}"
       UserData:
         Fn::Base64: !Sub 
           - |
