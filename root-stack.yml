@@ -7,11 +7,15 @@ Parameters:
   CloudformationBucketName:
       Description: Base URL for cloudformation templates 
       Type: String
-      Default: jupyterhub-cloudformation-631013143897
   CloudformationBucket:
       Description: Base URL for cloudformation templates 
       Type: String
-      Default: https://s3-eu-west-2.amazonaws.com/jupyterhub-cloudformation-631013143897
+  SshKeyName: 
+      Description: Name of SSH keypair used to connect to the Hub
+      Type: String
+  InboundIP:
+      Description: IP from which to allow HTTP and SSH access
+      Type: String
 Resources:
   VPC:
     Type: AWS::CloudFormation::Stack
@@ -47,8 +51,8 @@ Resources:
     Properties:
       Parameters:
         ExportPrefix: !Ref "AWS::StackName"
-        KeyName: 'jupyterhub'
-        InboundIP: '89.36.64.36/32'
+        KeyName: !Ref "SshKeyName"
+        InboundIP: !Ref "InboundIP"
         CloudFormationBucket: !Ref CloudformationBucketName
         ServerKeyName: !Sub "${AWS::StackName}-ServerKey"
         ServerTemplateUrl: !Join [ "/", [!Ref CloudformationBucket,"jupyterhub", "server.yml"] ]
